@@ -32,21 +32,9 @@ def step_two(schedule):
     for duty in range(len(schedule.duties)):
         #print((duties[duty].keys()))
         current_duty = schedule.duties[duty]
-        for duty_event in current_duty['duty_events']:
-            if duty_event['duty_event_type'] == 'vehicle_event': 
-                first_vehicle_event = schedule.find_vehicle_event(current_duty['duty_id'], duty_event['vehicle_event_sequence'])
-                if first_vehicle_event['vehicle_event_type'] == 'service_trip':
-                    first_trip = schedule.find_trip(first_vehicle_event['trip_id'])    
-                    first_stop = schedule.find_stop(first_trip['origin_stop_id'])
-                    break
+        first_stop = schedule.get_service_stop(current_duty)
         current_duty['duty_events'].reverse()
-        for duty_event in current_duty['duty_events']:
-            if duty_event['duty_event_type'] == 'vehicle_event': 
-                last_vehicle_event = schedule.find_vehicle_event(current_duty['duty_id'], duty_event['vehicle_event_sequence'])
-                if last_vehicle_event['vehicle_event_type'] == 'service_trip':
-                    last_trip = schedule.find_trip(last_vehicle_event['trip_id'])    
-                    last_stop = schedule.find_stop(last_trip['origin_stop_id'])
-                    break
+        last_stop = schedule.get_service_stop(current_duty)
 
         last_event_position = len(current_duty['duty_events']) - 1
         first_event = current_duty['duty_events'][0]
