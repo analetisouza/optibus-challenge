@@ -11,9 +11,7 @@ class Schedule:
             for event in item['vehicle_events']:
                 if event['duty_id'] == duty_id and event['vehicle_event_sequence'] == str(vehicle_event_sequence):
                     return event
-
-        return 'raise error'
-        
+        raise DataNotFoundError(message="The vehicle event was not found.")      
 
     def get_time(self, event, position, duty_id):
         if position == 'first':
@@ -37,16 +35,14 @@ class Schedule:
             else:
                 time = event['end_time']
         else:
-            time = 'raise error'
-
+            raise OptionInvalidError()
         return time
 
     def find_stop(self, stop_id):
         for stop in self.stops:
             if stop['stop_id'] == stop_id:
                 return stop
-
-        return 'raise error'
+        raise DataNotFoundError(message="The stop was not found")
 
     def get_stop(self, event, position, duty_id):
         if position == 'first':
@@ -83,16 +79,14 @@ class Schedule:
                 stop = self.find_stop(stop_id)
                 stop_name = stop['stop_name']
         else:
-            stop_name = 'raise error'
-
+            raise OptionInvalidError()
         return stop_name
 
     def find_trip(self, trip_id):
         for trip in self.trips:
             if trip['trip_id'] == trip_id:
                 return trip
-
-        return 'raise error'
+        raise DataNotFoundError(message="The trip was not found.")
 
     def get_service_stop(self, duty):
         for event in duty['duty_events']:
@@ -102,10 +96,23 @@ class Schedule:
                     trip = self.find_trip(vehicle_event['trip_id'])    
                     stop = self.find_stop(trip['origin_stop_id'])
                     return stop
-        return 'raise error'
+        raise DataNotFoundError(message="A service stop was not found.")
 
     def calculate_break_duration(self, start_time, end_time):
         start_time = timedelta(days= int(start_time[0]), hours=int(start_time[2:4]), minutes=int(start_time[5:]))
         end_time = timedelta(days= int(end_time[0]), hours=int(end_time[2:4]), minutes=int(end_time[5:]))
         duration = end_time - start_time
-        return duration.total_seconds() / 60
+        return int(duration.total_seconds() / 60)
+
+class Error(Exception):
+    pass
+
+class DataNotFoundError(Error):
+    def __init__(self, message="The data was not found."):
+        self.message = message
+        super().__init__(self.message)
+
+class OptionInvalidError(Error):
+    def __init__(self, message="The argument provided is invalid."):
+        self.message = message
+        super().__init__(self.message)

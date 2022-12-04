@@ -75,7 +75,7 @@ def step_three(schedule):
             break_duration = schedule.calculate_break_duration(break_start, break_end)
             if break_duration > 15:
                 stop = schedule.get_stop(current_duty['duty_events'][duty_event], 'last', current_duty['duty_id'])
-                breaks.append({'start': break_start, 'duration': int(break_duration), 'stop': stop})
+                breaks.append({'start': break_start, 'duration': break_duration, 'stop': stop})
 
 
         first_stop = schedule.get_service_stop(current_duty)
