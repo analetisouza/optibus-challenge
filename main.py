@@ -1,3 +1,4 @@
+from schedule import Schedule
 import json
 
 def main():
@@ -9,35 +10,53 @@ def main():
     vehicles = parsed_data['vehicles']
     duties = parsed_data['duties']
 
-    for duty in range(len(duties)):
+    schedule = Schedule(stops, trips, vehicles, duties)
+    #step_one(schedule)
+    step_two(schedule)
+    return
+
+def step_one(schedule):
+    for duty in range(len(schedule.duties)):
         #print((duties[duty].keys()))
-        current_duty = duties[duty]
+        current_duty = schedule.duties[duty]
         last_event_position = len(current_duty['duty_events']) - 1
         first_event = current_duty['duty_events'][0]
         last_event = current_duty['duty_events'][last_event_position]
-        print(current_duty['duty_id'])
-        print(get_time(first_event, 'first'))
-        print(get_time(last_event, 'last'))
+        print('{} | {} | {}'.format(current_duty['duty_id'], 
+                                    schedule.get_time(first_event, 'first', current_duty['duty_id'])[2:], 
+                                    schedule.get_time(last_event, 'last', current_duty['duty_id'])[2:]))
 
     return
 
-def get_time(event, position):
-    if position == 'first':
-        if event['duty_event_type'] == 'vehicle_event':
-            time = 'will be here'
-        else:
-            time = event['start_time']
-    elif position == 'last': 
-        if event['duty_event_type'] == 'vehicle_event':
-            time = 'will be here'
-        else:
-            time = event['end_time']
-    else:
-        time = 'raise error'
+def step_two(schedule):
+    for duty in range(len(schedule.duties)):
+        #print((duties[duty].keys()))
+        current_duty = schedule.duties[duty]
+        for duty_event in current_duty['duty_events']:
+            if duty_event['duty_event_type'] == 'vehicle_event': 
+                first_vehicle_event = schedule.find_vehicle_event(current_duty['duty_id'], duty_event['vehicle_event_sequence'])
+                if first_vehicle_event['vehicle_event_type'] == 'service_trip':
+                    first_trip = schedule.find_trip(first_vehicle_event['trip_id'])    
+                    first_stop = schedule.find_stop(first_trip['origin_stop_id'])
+                    break
+        current_duty['duty_events'].reverse()
+        for duty_event in current_duty['duty_events']:
+            if duty_event['duty_event_type'] == 'vehicle_event': 
+                last_vehicle_event = schedule.find_vehicle_event(current_duty['duty_id'], duty_event['vehicle_event_sequence'])
+                if last_vehicle_event['vehicle_event_type'] == 'service_trip':
+                    last_trip = schedule.find_trip(last_vehicle_event['trip_id'])    
+                    last_stop = schedule.find_stop(last_trip['origin_stop_id'])
+                    break
 
-    return time
+        last_event_position = len(current_duty['duty_events']) - 1
+        first_event = current_duty['duty_events'][0]
+        last_event = current_duty['duty_events'][last_event_position]
+        print('{} | {} | {} | {} | {}'.format(current_duty['duty_id'], 
+                                    schedule.get_time(first_event, 'first', current_duty['duty_id'])[2:], 
+                                    schedule.get_time(last_event, 'last', current_duty['duty_id'])[2:], 
+                                    first_stop['stop_name'], 
+                                    last_stop['stop_name']))
 
-def find_vehicle_event():
     return
 
 if __name__ == "__main__":
